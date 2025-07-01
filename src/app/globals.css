@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply text-gray-900 bg-gray-50;
+  }
+}
+
+@layer components {
+  .game-cell {
+    @apply w-12 h-12 border-2 rounded-md text-center text-xl font-bold;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+    @apply transition-colors duration-200;
+  }
+  
+  .game-cell-empty {
+    @apply bg-white border-gray-300 text-gray-900;
+  }
+  
+  .game-cell-filled {
+    @apply bg-gray-100 border-gray-400 text-gray-900;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .game-cell {
+    @apply w-10 h-10 text-lg;
+  }
+}
+
+@media (max-width: 360px) {
+  .game-cell {
+    @apply w-8 h-8 text-base;
+  }
+}
