@@ -20,14 +20,13 @@ describe('Input Utilities', () => {
   })
 
   describe('isValidGameInput', () => {
-    test('accepts digits 1-9', () => {
-      for (let i = 1; i <= 9; i++) {
+    test('accepts digits 0-9', () => {
+      for (let i = 0; i <= 9; i++) {
         expect(isValidGameInput(i.toString())).toBe(true)
       }
     })
     
     test('rejects invalid inputs', () => {
-      expect(isValidGameInput('0')).toBe(false)
       expect(isValidGameInput('10')).toBe(false)
       expect(isValidGameInput('a')).toBe(false)
       expect(isValidGameInput('')).toBe(false)

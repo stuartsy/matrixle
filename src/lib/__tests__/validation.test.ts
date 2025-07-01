@@ -31,20 +31,34 @@ describe('Matrix Multiplication Validation', () => {
       // This should be mathematically valid even if results exceed single digits
       expect(validateMatrixMultiplication(matrix, vector, result)).toBe(true);
     });
+    
+    test('handles zero multiplication correctly', () => {
+      const matrix = { a: 1, b: 0, c: 0, d: 1 };
+      const vector = { e: 5, f: 3 };
+      const result = { g: 5, h: 3 }; // 1*5 + 0*3 = 5, 0*5 + 1*3 = 3
+      
+      expect(validateMatrixMultiplication(matrix, vector, result)).toBe(true);
+    });
+    
+    test('handles all zeros', () => {
+      const matrix = { a: 0, b: 0, c: 0, d: 0 };
+      const vector = { e: 0, f: 0 };
+      const result = { g: 0, h: 0 };
+      
+      expect(validateMatrixMultiplication(matrix, vector, result)).toBe(true);
+    });
   });
   
   describe('isValidDigit', () => {
-    test('accepts digits 1-9', () => {
-      for (let i = 1; i <= 9; i++) {
+    test('accepts digits 0-9', () => {
+      for (let i = 0; i <= 9; i++) {
         expect(isValidDigit(i)).toBe(true);
         expect(isValidDigit(i.toString())).toBe(true);
       }
     });
     
-    test('rejects 0 and numbers > 9', () => {
-      expect(isValidDigit(0)).toBe(false);
+    test('rejects numbers > 9', () => {
       expect(isValidDigit(10)).toBe(false);
-      expect(isValidDigit('0')).toBe(false);
       expect(isValidDigit('10')).toBe(false);
     });
     
@@ -91,14 +105,14 @@ describe('Matrix Multiplication Validation', () => {
     });
     
     test('fails with invalid digits', () => {
-      const matrix = { a: 0, b: 2, c: 3, d: 10 }; // 0 and 10 invalid
+      const matrix = { a: 10, b: 2, c: 3, d: -1 }; // 10 and -1 invalid
       const vector = { e: 5, f: 6 };
       const result = { g: 7, h: 8 };
       
       const validation = validateMatrixInputs(matrix, vector, result);
       expect(validation.isValid).toBe(false);
-      expect(validation.errors).toContain('Matrix position a must be a digit 1-9');
-      expect(validation.errors).toContain('Matrix position d must be a digit 1-9');
+      expect(validation.errors).toContain('Matrix position a must be a digit 0-9');
+      expect(validation.errors).toContain('Matrix position d must be a digit 0-9');
     });
   });
   
@@ -112,14 +126,23 @@ describe('Matrix Multiplication Validation', () => {
       expect(validation.isValid).toBe(true);
     });
     
+    test('passes with zeros in input', () => {
+      const matrix = { a: 1, b: 0, c: 0, d: 1 };
+      const vector = { e: 5, f: 3 };
+      const result = { g: 5, h: 3 }; // 1*5 + 0*3 = 5, 0*5 + 1*3 = 3
+      
+      const validation = validateCompleteGuess(matrix, vector, result);
+      expect(validation.isValid).toBe(true);
+    });
+    
     test('fails with invalid inputs', () => {
-      const matrix = { a: 0, b: 1, c: 1, d: 3 }; // 0 is invalid
+      const matrix = { a: 10, b: 1, c: 1, d: 3 }; // 10 is invalid
       const vector = { e: 3, f: 2 };
       const result = { g: 8, h: 9 };
       
       const validation = validateCompleteGuess(matrix, vector, result);
       expect(validation.isValid).toBe(false);
-      expect(validation.errors).toContain('Matrix position a must be a digit 1-9');
+      expect(validation.errors).toContain('Matrix position a must be a digit 0-9');
     });
     
     test('fails with valid inputs but incorrect math', () => {

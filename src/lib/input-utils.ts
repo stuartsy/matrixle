@@ -5,7 +5,7 @@ export function sanitizeInput(input: string): string {
 }
 
 export function isValidGameInput(input: string): boolean {
-  return /^[1-9]$/.test(input)
+  return /^[0-9]$/.test(input)
 }
 
 export function formatInputForDisplay(input: string): string {

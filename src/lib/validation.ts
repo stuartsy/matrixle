@@ -18,19 +18,19 @@ export function validateMatrixMultiplication(
 }
 
 /**
- * Validates that input is a single digit 1-9
+ * Validates that input is a single digit 0-9
  */
 export function isValidDigit(input: string | number): boolean {
   if (typeof input === 'number') {
-    return Number.isInteger(input) && input >= 1 && input <= 9;
+    return Number.isInteger(input) && input >= 0 && input <= 9;
   }
   
-  // For strings, ensure it's exactly one digit 1-9
+  // For strings, ensure it's exactly one digit 0-9
   if (typeof input === 'string') {
     const trimmed = input.trim();
     if (trimmed.length !== 1) return false;
     const num = parseInt(trimmed, 10);
-    return !isNaN(num) && num >= 1 && num <= 9;
+    return !isNaN(num) && num >= 0 && num <= 9;
   }
   
   return false;
@@ -54,7 +54,7 @@ export function validateMatrixInputs(
     if (value === undefined || value === null) {
       errors.push(`Matrix position ${matrixLabels[index]} is required`);
     } else if (!isValidDigit(value)) {
-      errors.push(`Matrix position ${matrixLabels[index]} must be a digit 1-9`);
+      errors.push(`Matrix position ${matrixLabels[index]} must be a digit 0-9`);
     }
   });
   
@@ -66,7 +66,7 @@ export function validateMatrixInputs(
     if (value === undefined || value === null) {
       errors.push(`Vector position ${vectorLabels[index]} is required`);
     } else if (!isValidDigit(value)) {
-      errors.push(`Vector position ${vectorLabels[index]} must be a digit 1-9`);
+      errors.push(`Vector position ${vectorLabels[index]} must be a digit 0-9`);
     }
   });
   
@@ -78,7 +78,7 @@ export function validateMatrixInputs(
     if (value === undefined || value === null) {
       errors.push(`Result position ${resultLabels[index]} is required`);
     } else if (!isValidDigit(value)) {
-      errors.push(`Result position ${resultLabels[index]} must be a digit 1-9`);
+      errors.push(`Result position ${resultLabels[index]} must be a digit 0-9`);
     }
   });
   

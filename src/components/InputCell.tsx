@@ -41,8 +41,8 @@ export default function InputCell({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     
-    // Only allow single digits 1-9
-    if (newValue === '' || /^[1-9]$/.test(newValue)) {
+    // Only allow single digits 0-9
+    if (newValue === '' || /^[0-9]$/.test(newValue)) {
       onChange(newValue)
     }
     // Silently reject invalid input

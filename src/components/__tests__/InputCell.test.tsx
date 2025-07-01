@@ -11,7 +11,7 @@ describe('InputCell', () => {
     mockOnKeyDown.mockClear()
   })
 
-  test('accepts valid digits 1-9', async () => {
+  test('accepts valid digits 0-9', async () => {
     const user = userEvent.setup()
     
     render(
@@ -28,6 +28,12 @@ describe('InputCell', () => {
     
     await user.type(input, '5')
     expect(mockOnChange).toHaveBeenCalledWith('5')
+    
+    // Clear and test 0
+    mockOnChange.mockClear()
+    await user.clear(input)
+    await user.type(input, '0')
+    expect(mockOnChange).toHaveBeenCalledWith('0')
   })
 
   test('rejects invalid inputs', async () => {
@@ -49,12 +55,9 @@ describe('InputCell', () => {
     mockOnChange.mockClear()
     
     // Try invalid inputs - these should not call onChange
-    await user.type(input, '0')
     await user.type(input, 'a')
     await user.type(input, '!')
     
-    // For '10', only '1' should be accepted (maxLength=1), so we expect 1 call
-    expect(mockOnChange).not.toHaveBeenCalledWith('0')
     expect(mockOnChange).not.toHaveBeenCalledWith('a')
     expect(mockOnChange).not.toHaveBeenCalledWith('!')
   })
