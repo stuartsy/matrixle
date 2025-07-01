@@ -21,26 +21,28 @@ export default function DigitTracker({ digitStatus }: DigitTrackerProps) {
   }
   
   return (
-    <div className="w-full max-w-md mx-auto mt-6">
-      <div className="text-center text-sm text-gray-600 mb-2">
-        Digit Status
-      </div>
-      <div className="flex justify-center gap-1">
-        {digits.map(digit => (
-          <div
-            key={digit}
-            className={`
-              w-8 h-8 flex items-center justify-center
-              border-2 rounded text-sm font-bold
-              transition-colors duration-300
-              ${getDigitStyle(digitStatus[digit] || 'not-in-puzzle')}
-            `}
-            role="img"
-            aria-label={`Digit ${digit}: ${digitStatus[digit] || 'unknown'}`}
-          >
-            {digit}
-          </div>
-        ))}
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-10">
+      <div className="w-full max-w-md mx-auto py-3 px-4">
+        <div className="text-center text-sm text-gray-600 mb-2">
+          Digit Status
+        </div>
+        <div className="flex justify-center gap-1">
+          {digits.map(digit => (
+            <div
+              key={digit}
+              className={`
+                w-8 h-8 flex items-center justify-center
+                border-2 rounded text-sm font-bold
+                transition-colors duration-300
+                ${getDigitStyle(digitStatus[digit] || 'not-in-puzzle')}
+              `}
+              role="img"
+              aria-label={`Digit ${digit}: ${digitStatus[digit] || 'unknown'}`}
+            >
+              {digit}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

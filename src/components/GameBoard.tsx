@@ -15,7 +15,7 @@ export default function GameBoard() {
   }))
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto pb-24">
       {/* Game Board */}
       <div className="space-y-2 mb-6">
         {guessRows.map((row) => (
@@ -30,7 +30,7 @@ export default function GameBoard() {
         ))}
       </div>
       
-      {/* Digit Tracker */}
+      {/* Digit Tracker - Now sticky at bottom */}
       <DigitTracker digitStatus={gameState.digitTracker} />
       
       {/* Game Status */}
@@ -63,14 +63,54 @@ export default function GameBoard() {
       
       {/* Instructions */}
       <div className="text-center text-gray-500 text-xs mt-6">
-        <div className="mb-2">
+        <div className="mb-4">
           🟩 Correct position • 🟨 Wrong position • ⬜ Not in puzzle
         </div>
-        <div className="font-mono text-xs">
-          Enter matrix values: [a b] × [e] = [g]
-        </div>
-        <div className="font-mono text-xs">
-                           [c d]   [f]   [h]
+        
+        {/* Matrix visualization */}
+        <div className="mb-2 text-gray-600 text-sm">Enter matrix values:</div>
+        <div className="flex items-center justify-center gap-2 text-xs font-mono">
+          {/* Matrix */}
+          <div className="flex items-center">
+            <span className="text-gray-400 mr-1">[</span>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex gap-1">
+                <span className="w-3 text-center text-blue-600 font-semibold">a</span>
+                <span className="w-3 text-center text-blue-600 font-semibold">b</span>
+              </div>
+              <div className="flex gap-1">
+                <span className="w-3 text-center text-blue-600 font-semibold">c</span>
+                <span className="w-3 text-center text-blue-600 font-semibold">d</span>
+              </div>
+            </div>
+            <span className="text-gray-400 ml-1">]</span>
+          </div>
+          
+          {/* Multiplication symbol */}
+          <span className="text-gray-600 font-bold">×</span>
+          
+          {/* Vector */}
+          <div className="flex items-center">
+            <span className="text-gray-400 mr-1">[</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="w-3 text-center text-blue-600 font-semibold">e</span>
+              <span className="w-3 text-center text-blue-600 font-semibold">f</span>
+            </div>
+            <span className="text-gray-400 ml-1">]</span>
+          </div>
+          
+          {/* Equals symbol */}
+          <span className="text-gray-600 font-bold">=</span>
+          
+          {/* Result */}
+          <div className="flex items-center">
+            <span className="text-gray-400 mr-1">[</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="w-3 text-center text-green-600 font-semibold">g</span>
+              <span className="w-3 text-center text-green-600 font-semibold">h</span>
+            </div>
+            <span className="text-gray-400 ml-1">]</span>
+          </div>
         </div>
       </div>
     </div>
