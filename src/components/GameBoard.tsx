@@ -1,37 +1,17 @@
 'use client'
 
-import { useState } from 'react'
 import GuessRow from './GuessRow'
-import type { Matrix2x2, Vector2x1, Result2x1 } from '@/types/game'
-
-interface Guess {
-  matrix: Matrix2x2
-  vector: Vector2x1
-  result: Result2x1
-}
+import DigitTracker from './DigitTracker'
+import { useGameState } from '@/hooks/useGameState'
 
 export default function GameBoard() {
-  const [guesses, setGuesses] = useState<Guess[]>([])
-  const [currentGuess, setCurrentGuess] = useState(0)
-  const [gameStatus, setGameStatus] = useState<'playing' | 'won' | 'lost'>('playing')
-
-  const handleGuessSubmit = (guess: Guess) => {
-    const newGuesses = [...guesses, guess]
-    setGuesses(newGuesses)
-    
-    // For now, just move to next guess (we'll add win/loss logic in Milestone 4)
-    if (newGuesses.length < 6) {
-      setCurrentGuess(newGuesses.length)
-    } else {
-      setGameStatus('lost') // Used all guesses
-    }
-  }
+  const { gameState, submitGuess, resetGame } = useGameState()
 
   const guessRows = Array.from({ length: 6 }, (_, index) => ({
     id: index,
-    isActive: index === currentGuess && gameStatus === 'playing',
-    isSubmitted: index < guesses.length,
-    guess: guesses[index] || null
+    isActive: index === gameState.currentGuess && gameState.status === 'playing',
+    isSubmitted: index < gameState.guesses.length,
+    feedback: gameState.guesses[index]?.feedback
   }))
 
   return (
@@ -44,30 +24,53 @@ export default function GameBoard() {
             rowIndex={row.id}
             isActive={row.isActive}
             isSubmitted={row.isSubmitted}
-            onSubmit={handleGuessSubmit}
+            feedback={row.feedback}
+            onSubmit={submitGuess}
           />
         ))}
       </div>
       
-      {/* Game status */}
-      {gameStatus !== 'playing' && (
-        <div className="text-center mt-4">
-          <div className="text-lg font-semibold">
-            {gameStatus === 'won' ? 'Congratulations!' : 'Game Over'}
+      {/* Digit Tracker */}
+      <DigitTracker digitStatus={gameState.digitTracker} />
+      
+      {/* Game Status */}
+      {gameState.status !== 'playing' && (
+        <div className="text-center mt-6 p-4 rounded-lg bg-gray-100">
+          <div className="text-lg font-semibold mb-2">
+            {gameState.status === 'won' ? '🎉 Congratulations!' : '😔 Game Over'}
           </div>
-          <div className="text-sm text-gray-600 mt-1">
-            You made {guesses.length} guess{guesses.length !== 1 ? 'es' : ''}
+          <div className="text-sm text-gray-600 mb-3">
+            {gameState.status === 'won' 
+              ? `You solved it in ${gameState.guesses.length} guess${gameState.guesses.length !== 1 ? 'es' : ''}!`
+              : 'Better luck next time!'
+            }
           </div>
+          {gameState.status === 'lost' && (
+            <div className="text-sm text-gray-700 mb-3">
+              The answer was: [{gameState.puzzle.matrix.a} {gameState.puzzle.matrix.b}] × [{gameState.puzzle.vector.e}] = [{gameState.puzzle.result.g}]
+              <br />
+              [{gameState.puzzle.matrix.c} {gameState.puzzle.matrix.d}]   [{gameState.puzzle.vector.f}]   [{gameState.puzzle.result.h}]
+            </div>
+          )}
+          <button
+            onClick={resetGame}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Play Again
+          </button>
         </div>
       )}
       
-      {/* Template visualization */}
-      <div className="text-center text-gray-500 text-sm mt-6">
-        <div className="font-mono text-xs">
-          Matrix format: [a b] × [e] = [g]
+      {/* Instructions */}
+      <div className="text-center text-gray-500 text-xs mt-6">
+        <div className="mb-2">
+          🟩 Correct position • 🟨 Wrong position • ⬜ Not in puzzle
         </div>
         <div className="font-mono text-xs">
-                       [c d]   [f]   [h]
+          Enter matrix values: [a b] × [e] = [g]
+        </div>
+        <div className="font-mono text-xs">
+                           [c d]   [f]   [h]
         </div>
       </div>
     </div>

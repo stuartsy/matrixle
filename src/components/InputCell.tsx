@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useEffect, KeyboardEvent, FocusEvent } from 'react'
+import type { FeedbackColor } from '@/types/game'
 
 interface InputCellProps {
   value: string
@@ -11,7 +12,7 @@ interface InputCellProps {
   position: string // 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'
   size: string
   isReadOnly?: boolean
-  feedback?: 'correct' | 'wrong-position' | 'not-in-puzzle'
+  feedback?: FeedbackColor
   autoFocus?: boolean
   isError?: boolean
 }

@@ -3,12 +3,13 @@
 import { useState, useCallback, useMemo, KeyboardEvent } from 'react'
 import InputCell from './InputCell'
 import { validateCompleteGuess } from '@/lib/validation'
-import type { Matrix2x2, Vector2x1, Result2x1 } from '@/types/game'
+import type { Matrix2x2, Vector2x1, Result2x1, FeedbackColor } from '@/types/game'
 
 interface GuessRowProps {
   rowIndex: number
   isActive: boolean
   isSubmitted: boolean
+  feedback?: FeedbackColor[]
   onSubmit?: (guess: {
     matrix: Matrix2x2
     vector: Vector2x1
@@ -22,6 +23,7 @@ export default function GuessRow({
   rowIndex, 
   isActive, 
   isSubmitted, 
+  feedback,
   onSubmit 
 }: GuessRowProps) {
   const [values, setValues] = useState<Record<CellPosition, string>>({
@@ -31,12 +33,12 @@ export default function GuessRow({
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [currentFocus, setCurrentFocus] = useState<CellPosition>('a')
 
-  // Define the navigation order
-  const navigationOrder: CellPosition[] = useMemo(() => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [])
+  // Navigation order for all 8 positions - user inputs everything
+  const navigationOrder = useMemo<CellPosition[]>(() => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [])
   
   const handleCellChange = useCallback((position: CellPosition, value: string) => {
     setValues(prev => ({ ...prev, [position]: value }))
-    setErrorMessage('') // Clear error when user starts typing
+    setErrorMessage('')
     
     // Auto-advance to next cell if value is entered
     if (value && isActive) {
@@ -48,6 +50,32 @@ export default function GuessRow({
     }
   }, [isActive, navigationOrder])
 
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>, position: CellPosition) => {
+    const currentIndex = navigationOrder.indexOf(position)
+    
+    if (e.key === 'Backspace' && values[position] === '') {
+      if (currentIndex > 0) {
+        const prevPosition = navigationOrder[currentIndex - 1]
+        setCurrentFocus(prevPosition)
+      }
+    } else if (e.key === 'Enter') {
+      handleSubmit()
+    } else if (e.key === 'ArrowRight' || e.key === 'Tab') {
+      if (currentIndex < navigationOrder.length - 1) {
+        e.preventDefault()
+        const nextPosition = navigationOrder[currentIndex + 1]
+        setCurrentFocus(nextPosition)
+      }
+    } else if (e.key === 'ArrowLeft') {
+      if (currentIndex > 0) {
+        e.preventDefault()
+        const prevPosition = navigationOrder[currentIndex - 1]
+        setCurrentFocus(prevPosition)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values, navigationOrder])
+
   const handleSubmit = useCallback(() => {
     // Check if all cells are filled
     const isComplete = Object.values(values).every(val => val !== '')
@@ -57,25 +85,21 @@ export default function GuessRow({
       return
     }
     
-    // Convert to numbers and validate
-    const matrix: Matrix2x2 = {
-      a: parseInt(values.a),
-      b: parseInt(values.b),
-      c: parseInt(values.c),
-      d: parseInt(values.d)
-    }
+    // Convert to numbers
+    const a = parseInt(values.a)
+    const b = parseInt(values.b)
+    const c = parseInt(values.c)
+    const d = parseInt(values.d)
+    const e = parseInt(values.e)
+    const f = parseInt(values.f)
+    const g = parseInt(values.g)
+    const h = parseInt(values.h)
     
-    const vector: Vector2x1 = {
-      e: parseInt(values.e),
-      f: parseInt(values.f)
-    }
+    const matrix: Matrix2x2 = { a, b, c, d }
+    const vector: Vector2x1 = { e, f }
+    const result: Result2x1 = { g, h }
     
-    const result: Result2x1 = {
-      g: parseInt(values.g),
-      h: parseInt(values.h)
-    }
-    
-    // Validate the guess
+    // Validate the complete guess (includes mathematical validation)
     const validation = validateCompleteGuess(matrix, vector, result)
     
     if (!validation.isValid) {
@@ -87,37 +111,19 @@ export default function GuessRow({
     onSubmit?.({ matrix, vector, result })
   }, [values, onSubmit])
 
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>, position: CellPosition) => {
-    const currentIndex = navigationOrder.indexOf(position)
-    
-    if (e.key === 'Backspace' && values[position] === '') {
-      // Move to previous cell if current is empty
-      if (currentIndex > 0) {
-        const prevPosition = navigationOrder[currentIndex - 1]
-        setCurrentFocus(prevPosition)
-      }
-    } else if (e.key === 'Enter') {
-      // Try to submit the guess
-      handleSubmit()
-    } else if (e.key === 'ArrowRight' || e.key === 'Tab') {
-      // Move to next cell
-      if (currentIndex < navigationOrder.length - 1) {
-        e.preventDefault()
-        const nextPosition = navigationOrder[currentIndex + 1]
-        setCurrentFocus(nextPosition)
-      }
-    } else if (e.key === 'ArrowLeft') {
-      // Move to previous cell
-      if (currentIndex > 0) {
-        e.preventDefault()
-        const prevPosition = navigationOrder[currentIndex - 1]
-        setCurrentFocus(prevPosition)
-      }
-    }
-  }, [values, navigationOrder, handleSubmit])
-
+  // Check if all positions are complete
   const isComplete = Object.values(values).every(val => val !== '')
-  const cellSize = 'w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-base xs:text-lg sm:text-xl'
+  const cellSize = 'w-12 h-12'
+  
+  // Map feedback to cell positions (feedback only applies to the 6 input positions, not results)
+  const getCellFeedback = (position: CellPosition): FeedbackColor | undefined => {
+    if (!feedback || !isSubmitted) return undefined
+    
+    // Only the first 6 positions (a,b,c,d,e,f) get feedback
+    const inputPositions: CellPosition[] = ['a', 'b', 'c', 'd', 'e', 'f']
+    const feedbackIndex = inputPositions.indexOf(position)
+    return feedbackIndex >= 0 ? feedback[feedbackIndex] : undefined
+  }
   
   return (
     <div className={`
@@ -138,6 +144,7 @@ export default function GuessRow({
               position="a"
               size={cellSize}
               isReadOnly={isSubmitted}
+              feedback={getCellFeedback('a')}
               autoFocus={isActive && currentFocus === 'a'}
               isError={!!errorMessage}
             />
@@ -149,6 +156,7 @@ export default function GuessRow({
               position="b"
               size={cellSize}
               isReadOnly={isSubmitted}
+              feedback={getCellFeedback('b')}
               autoFocus={isActive && currentFocus === 'b'}
               isError={!!errorMessage}
             />
@@ -162,6 +170,7 @@ export default function GuessRow({
               position="c"
               size={cellSize}
               isReadOnly={isSubmitted}
+              feedback={getCellFeedback('c')}
               autoFocus={isActive && currentFocus === 'c'}
               isError={!!errorMessage}
             />
@@ -173,6 +182,7 @@ export default function GuessRow({
               position="d"
               size={cellSize}
               isReadOnly={isSubmitted}
+              feedback={getCellFeedback('d')}
               autoFocus={isActive && currentFocus === 'd'}
               isError={!!errorMessage}
             />
@@ -180,7 +190,7 @@ export default function GuessRow({
         </div>
         
         {/* Multiplication symbol */}
-        <div className="text-lg xs:text-xl sm:text-2xl font-bold text-gray-600 px-1 xs:px-2">×</div>
+        <div className="text-2xl font-bold text-gray-600 px-2">×</div>
         
         {/* Vector [e f] */}
         <div className="flex flex-col gap-1">
@@ -192,6 +202,7 @@ export default function GuessRow({
             position="e"
             size={cellSize}
             isReadOnly={isSubmitted}
+            feedback={getCellFeedback('e')}
             autoFocus={isActive && currentFocus === 'e'}
             isError={!!errorMessage}
           />
@@ -203,15 +214,16 @@ export default function GuessRow({
             position="f"
             size={cellSize}
             isReadOnly={isSubmitted}
+            feedback={getCellFeedback('f')}
             autoFocus={isActive && currentFocus === 'f'}
             isError={!!errorMessage}
           />
         </div>
         
         {/* Equals symbol */}
-        <div className="text-lg xs:text-xl sm:text-2xl font-bold text-gray-600 px-1 xs:px-2">=</div>
+        <div className="text-2xl font-bold text-gray-600 px-2">=</div>
         
-        {/* Result [g h] */}
+        {/* Result [g h] - user inputs these */}
         <div className="flex flex-col gap-1">
           <InputCell
             value={values.g}

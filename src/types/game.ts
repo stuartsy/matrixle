@@ -19,3 +19,21 @@ export interface ValidationResult {
   isValid: boolean;
   errors?: string[];
 }
+
+export type FeedbackColor = 'correct' | 'wrong-position' | 'not-in-puzzle'
+
+export interface Guess {
+  matrix: Matrix2x2
+  vector: Vector2x1
+  result: Result2x1
+  feedback: FeedbackColor[]
+  timestamp: Date
+}
+
+export interface Puzzle {
+  matrix: Matrix2x2
+  vector: Vector2x1
+  result: Result2x1
+  id: string
+  date: string
+}
