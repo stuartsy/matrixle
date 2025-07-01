@@ -2,31 +2,33 @@ import type { Matrix2x2, Vector2x1, Result2x1, FeedbackColor, Guess, Puzzle } fr
 
 /**
  * Generate Wordle-style feedback for a guess against the target puzzle
- * Returns array of 6 feedback colors for positions [a,b,c,d,e,f]
- * Note: result positions g,h are calculated, so they're not part of feedback
+ * Returns array of 8 feedback colors for positions [a,b,c,d,e,f,g,h]
+ * Now includes feedback for all positions including results
  */
 export function generateFeedback(
   guess: Guess,
   target: Puzzle
 ): FeedbackColor[] {
-  // Extract the 6 input positions (not the calculated results)
+  // Extract all 8 positions (including the results)
   const guessArray = [
     guess.matrix.a, guess.matrix.b,
     guess.matrix.c, guess.matrix.d,
-    guess.vector.e, guess.vector.f
+    guess.vector.e, guess.vector.f,
+    guess.result.g, guess.result.h
   ]
   
   const targetArray = [
     target.matrix.a, target.matrix.b,
     target.matrix.c, target.matrix.d,
-    target.vector.e, target.vector.f
+    target.vector.e, target.vector.f,
+    target.result.g, target.result.h
   ]
   
-  const feedback: FeedbackColor[] = new Array(6)
-  const targetUsed = new Array(6).fill(false)
+  const feedback: FeedbackColor[] = new Array(8)
+  const targetUsed = new Array(8).fill(false)
   
   // First pass: mark exact position matches (GREEN)
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     if (guessArray[i] === targetArray[i]) {
       feedback[i] = 'correct'
       targetUsed[i] = true
@@ -34,7 +36,7 @@ export function generateFeedback(
   }
   
   // Second pass: mark wrong position matches (YELLOW)
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     if (feedback[i] !== 'correct') {
       // Find this digit elsewhere in the target
       const foundIndex = targetArray.findIndex((digit, idx) => 
@@ -71,7 +73,8 @@ export function calculateDigitTracker(
     const guessArray = [
       guess.matrix.a, guess.matrix.b,
       guess.matrix.c, guess.matrix.d,
-      guess.vector.e, guess.vector.f
+      guess.vector.e, guess.vector.f,
+      guess.result.g, guess.result.h
     ]
     
     guessArray.forEach((digit, index) => {
@@ -100,6 +103,8 @@ export function isWinningGuess(guess: Guess, target: Puzzle): boolean {
     guess.matrix.c === target.matrix.c &&
     guess.matrix.d === target.matrix.d &&
     guess.vector.e === target.vector.e &&
-    guess.vector.f === target.vector.f
+    guess.vector.f === target.vector.f &&
+    guess.result.g === target.result.g &&
+    guess.result.h === target.result.h
   )
 }

@@ -115,13 +115,13 @@ export default function GuessRow({
   const isComplete = Object.values(values).every(val => val !== '')
   const cellSize = 'w-12 h-12'
   
-  // Map feedback to cell positions (feedback only applies to the 6 input positions, not results)
+  // Map feedback to cell positions (feedback now applies to all 8 positions)
   const getCellFeedback = (position: CellPosition): FeedbackColor | undefined => {
     if (!feedback || !isSubmitted) return undefined
     
-    // Only the first 6 positions (a,b,c,d,e,f) get feedback
-    const inputPositions: CellPosition[] = ['a', 'b', 'c', 'd', 'e', 'f']
-    const feedbackIndex = inputPositions.indexOf(position)
+    // All 8 positions get feedback now
+    const allPositions: CellPosition[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    const feedbackIndex = allPositions.indexOf(position)
     return feedbackIndex >= 0 ? feedback[feedbackIndex] : undefined
   }
   
@@ -233,6 +233,7 @@ export default function GuessRow({
             position="g"
             size={cellSize}
             isReadOnly={isSubmitted}
+            feedback={getCellFeedback('g')}
             autoFocus={isActive && currentFocus === 'g'}
             isError={!!errorMessage}
           />
@@ -244,6 +245,7 @@ export default function GuessRow({
             position="h"
             size={cellSize}
             isReadOnly={isSubmitted}
+            feedback={getCellFeedback('h')}
             autoFocus={isActive && currentFocus === 'h'}
             isError={!!errorMessage}
           />
