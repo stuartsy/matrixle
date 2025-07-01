@@ -9,17 +9,24 @@ import { useGameState } from '@/hooks/useGameState'
 export default function GameBoard() {
   const { gameState, submitGuess, resetGame } = useGameState()
   const [showWinModal, setShowWinModal] = useState(false)
+  const [modalClosedManually, setModalClosedManually] = useState(false)
   const [gameKey, setGameKey] = useState(0)
 
-  // Show win modal when game is won
-  if (gameState.status === 'won' && !showWinModal) {
+  // Show win modal when game is won (but not if it was manually closed)
+  if (gameState.status === 'won' && !showWinModal && !modalClosedManually) {
     setShowWinModal(true)
   }
 
   const handlePlayAgain = () => {
     resetGame()
     setShowWinModal(false)
+    setModalClosedManually(false) // Reset for new game
     setGameKey(prev => prev + 1) // Force re-render of GuessRow components
+  }
+
+  const handleCloseModal = () => {
+    setShowWinModal(false)
+    setModalClosedManually(true) // Track that user manually closed it
   }
 
   const guessRows = Array.from({ length: 6 }, (_, index) => ({
@@ -121,7 +128,7 @@ export default function GameBoard() {
       {/* Win Modal */}
       <WinModal
         isOpen={showWinModal}
-        onClose={() => setShowWinModal(false)}
+        onClose={handleCloseModal}
         onPlayAgain={handlePlayAgain}
         guessCount={gameState.guesses.length}
       />
