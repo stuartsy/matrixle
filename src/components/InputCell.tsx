@@ -1,19 +1,73 @@
+'use client'
+
+import { useRef, useEffect, KeyboardEvent, FocusEvent } from 'react'
+
 interface InputCellProps {
   value: string
+  onChange: (value: string) => void
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
+  onFocus?: (e: FocusEvent<HTMLInputElement>) => void
   cellId: string
+  position: string // 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'
   size: string
   isReadOnly?: boolean
   feedback?: 'correct' | 'wrong-position' | 'not-in-puzzle'
+  autoFocus?: boolean
+  isError?: boolean
 }
 
 export default function InputCell({ 
   value, 
+  onChange,
+  onKeyDown,
+  onFocus,
   cellId, 
+  position,
   size, 
   isReadOnly = false,
-  feedback 
+  feedback,
+  autoFocus = false,
+  isError = false
 }: InputCellProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [autoFocus])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    
+    // Only allow single digits 1-9
+    if (newValue === '' || /^[1-9]$/.test(newValue)) {
+      onChange(newValue)
+    }
+    // Silently reject invalid input
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // Allow navigation keys
+    if (['Tab', 'Shift', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      return
+    }
+    
+    // Handle backspace/delete
+    if (['Backspace', 'Delete'].includes(e.key)) {
+      if (value === '') {
+        // Move to previous cell if current is empty
+        onKeyDown?.(e)
+      }
+      return
+    }
+    
+    // Forward other key events
+    onKeyDown?.(e)
+  }
+
   const getFeedbackColor = () => {
+    if (isError) return 'border-red-500 bg-red-50'
     if (!feedback) return 'bg-white border-gray-300'
     
     switch (feedback) {
@@ -30,10 +84,14 @@ export default function InputCell({
 
   return (
     <input
+      ref={inputRef}
       id={cellId}
       type="text"
-      defaultValue={value}
-      readOnly={true} // For milestone 2, all inputs are read-only (static demo)
+      value={value}
+      onChange={handleChange}
+      onKeyDown={handleKeyDown}
+      onFocus={onFocus}
+      readOnly={isReadOnly}
       maxLength={1}
       className={`
         ${size}
@@ -42,9 +100,11 @@ export default function InputCell({
         focus:outline-none focus:ring-2 focus:ring-blue-500
         transition-colors duration-200
         ${getFeedbackColor()}
-        cursor-default
+        ${isReadOnly ? 'cursor-default' : 'cursor-text'}
       `}
-      placeholder=""
+      aria-label={`Matrix position ${position}`}
+      aria-describedby={`${cellId}-help`}
+      inputMode="numeric"
     />
   )
 }
