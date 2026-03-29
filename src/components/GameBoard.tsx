@@ -5,12 +5,29 @@ import GuessRow from './GuessRow'
 import DigitTracker from './DigitTracker'
 import WinModal from './WinModal'
 import { useGameState } from '@/hooks/useGameState'
+import { formatShareText } from '@/lib/share'
+import { getPuzzleNumber } from '@/lib/dailyPuzzle'
 
 export default function GameBoard() {
   const { gameState, submitGuess, retryGame } = useGameState()
   const [showWinModal, setShowWinModal] = useState(false)
   const [modalClosedManually, setModalClosedManually] = useState(false)
   const [gameKey, setGameKey] = useState(0)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    const text = formatShareText(
+      gameState.guesses,
+      getPuzzleNumber(),
+      gameState.guesses.length,
+      gameState.status as 'won' | 'lost',
+      gameState.retried
+    )
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   if (gameState.status === 'won' && !showWinModal && !modalClosedManually) {
     setShowWinModal(true)
@@ -103,19 +120,24 @@ export default function GameBoard() {
               </div>
             </div>
           )}
-          {gameState.status === 'lost' && !gameState.retried && (
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            {gameState.status === 'lost' && !gameState.retried && (
+              <button
+                onClick={handleRetry}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Try Again
+              </button>
+            )}
             <button
-              onClick={handleRetry}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mr-2"
+              onClick={handleCopy}
+              className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
             >
-              Try Again
+              {copied ? 'Copied!' : 'Copy result'}
             </button>
-          )}
-          {gameState.status === 'lost' && gameState.retried && (
-            <p className="text-sm text-gray-500">Come back tomorrow for a new puzzle!</p>
-          )}
-          {gameState.status === 'won' && (
-            <p className="text-sm text-gray-500">Come back tomorrow for a new puzzle!</p>
+          </div>
+          {(gameState.status === 'won' || gameState.retried) && (
+            <p className="text-sm text-gray-500 mt-3">Come back tomorrow for a new puzzle!</p>
           )}
         </div>
       )}
@@ -125,6 +147,7 @@ export default function GameBoard() {
         onClose={handleCloseModal}
         guessCount={gameState.guesses.length}
         retried={gameState.retried}
+        guesses={gameState.guesses}
       />
     </div>
   )

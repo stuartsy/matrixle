@@ -1,16 +1,29 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { formatShareText } from '@/lib/share'
+import { getPuzzleNumber } from '@/lib/dailyPuzzle'
+import type { Guess } from '@/types/game'
 
 interface WinModalProps {
   isOpen: boolean
   onClose: () => void
   guessCount: number
   retried: boolean
+  guesses: Guess[]
 }
 
-export default function WinModal({ isOpen, onClose, guessCount, retried }: WinModalProps) {
+export default function WinModal({ isOpen, onClose, guessCount, retried, guesses }: WinModalProps) {
   const [showConfetti, setShowConfetti] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    const text = formatShareText(guesses, getPuzzleNumber(), guessCount, 'won', retried)
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   useEffect(() => {
     if (isOpen) {
@@ -64,12 +77,20 @@ export default function WinModal({ isOpen, onClose, guessCount, retried }: WinMo
           <p className="text-sm text-gray-500 mb-6">
             Come back tomorrow for a new puzzle!
           </p>
-          <button
-            onClick={onClose}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Close
-          </button>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={handleCopy}
+              className="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
+            >
+              {copied ? 'Copied!' : 'Copy result'}
+            </button>
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
