@@ -1,4 +1,4 @@
-import type { Matrix2x2, Vector2x1, Result2x1, FeedbackColor, Guess, Puzzle } from '@/types/game'
+import type { Matrix2x2, Vector2x1, Result2x1, FeedbackColor, Guess, Puzzle, DigitStat } from '@/types/game'
 
 /**
  * Generate Wordle-style feedback for a guess against the target puzzle
@@ -56,19 +56,18 @@ export function generateFeedback(
 }
 
 /**
- * Calculate the overall status of each digit (1-9) based on all guesses
+ * Calculate placed/confirmed stats for each digit 0-9 based on all guesses.
+ *
+ * placed:    max greens for this digit in any single guess
+ * confirmed: max (greens + yellows) in any single guess = lower bound on count in puzzle
+ * exact:     true when a gray was seen — confirmed becomes the exact count
  */
-export function calculateDigitTracker(
-  guesses: Guess[]
-): Record<string, FeedbackColor> {
-  const digitStatus: Record<string, FeedbackColor> = {}
-  
-  // Initialize all digits as unknown (not-in-puzzle initially)
-  for (let i = 1; i <= 9; i++) {
-    digitStatus[i.toString()] = 'not-in-puzzle'
+export function calculateDigitStats(guesses: Guess[]): Record<string, DigitStat> {
+  const stats: Record<string, DigitStat> = {}
+  for (let i = 0; i <= 9; i++) {
+    stats[i.toString()] = { placed: 0, confirmed: 0, exact: false }
   }
-  
-  // Process each guess to update digit status
+
   guesses.forEach(guess => {
     const guessArray = [
       guess.matrix.a, guess.matrix.b,
@@ -76,21 +75,33 @@ export function calculateDigitTracker(
       guess.vector.e, guess.vector.f,
       guess.result.g, guess.result.h
     ]
-    
+
+    // Tally greens/yellows/grays per digit for this guess
+    const tally: Record<string, { greens: number; yellows: number; grays: number }> = {}
     guessArray.forEach((digit, index) => {
-      const digitStr = digit.toString()
-      const currentStatus = digitStatus[digitStr]
-      const newStatus = guess.feedback[index]
-      
-      // Priority: correct > wrong-position > not-in-puzzle
-      if (newStatus === 'correct' || 
-          (newStatus === 'wrong-position' && currentStatus === 'not-in-puzzle')) {
-        digitStatus[digitStr] = newStatus
+      const d = digit.toString()
+      if (!tally[d]) tally[d] = { greens: 0, yellows: 0, grays: 0 }
+      const fb = guess.feedback[index]
+      if (fb === 'correct') tally[d].greens++
+      else if (fb === 'wrong-position') tally[d].yellows++
+      else tally[d].grays++
+    })
+
+    Object.entries(tally).forEach(([d, { greens, yellows, grays }]) => {
+      const s = stats[d]
+      const confirmedInGuess = greens + yellows
+      if (greens > s.placed) s.placed = greens
+      if (grays > 0) {
+        // Gray caps the count exactly
+        s.exact = true
+        s.confirmed = confirmedInGuess
+      } else if (confirmedInGuess > s.confirmed) {
+        s.confirmed = confirmedInGuess
       }
     })
   })
-  
-  return digitStatus
+
+  return stats
 }
 
 /**

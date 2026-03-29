@@ -1,4 +1,4 @@
-import { generateFeedback, calculateDigitTracker, isWinningGuess } from '../feedback'
+import { generateFeedback, calculateDigitStats, isWinningGuess } from '../feedback'
 import type { Guess, Puzzle } from '@/types/game'
 
 describe('Feedback System', () => {
@@ -141,8 +141,8 @@ describe('Feedback System', () => {
     })
   })
 
-  describe('calculateDigitTracker', () => {
-    test('calculates digit status from multiple guesses', () => {
+  describe('calculateDigitStats', () => {
+    test('calculates placed/confirmed stats from multiple guesses', () => {
       const guess1: Guess = {
         matrix: { a: 1, b: 4, c: 7, d: 5 },
         vector: { e: 6, f: 4 },
@@ -159,40 +159,46 @@ describe('Feedback System', () => {
         timestamp: new Date()
       }
 
-      const digitStatus = calculateDigitTracker([guess1, guess2])
+      const stats = calculateDigitStats([guess1, guess2])
 
-      expect(digitStatus['1']).toBe('wrong-position')
-      expect(digitStatus['2']).toBe('correct')
-      expect(digitStatus['3']).toBe('correct')
-      expect(digitStatus['4']).toBe('not-in-puzzle')
-      expect(digitStatus['5']).toBe('not-in-puzzle')
-      expect(digitStatus['6']).toBe('not-in-puzzle')
-      expect(digitStatus['7']).toBe('not-in-puzzle')
-      expect(digitStatus['8']).toBe('correct')
-      expect(digitStatus['9']).toBe('correct')
+      // digit 1: yellow in guess2 (b), seen gray in guess1 → exact, confirmed=1, placed=0
+      expect(stats['1'].confirmed).toBe(1)
+      expect(stats['1'].placed).toBe(0)
+      expect(stats['1'].exact).toBe(true)
+      // digit 2: green at positions a and f in guess2 → placed=2, confirmed=2
+      expect(stats['2'].placed).toBe(2)
+      expect(stats['2'].confirmed).toBe(2)
+      // digit 4: gray in guess1 → eliminated
+      expect(stats['4'].confirmed).toBe(0)
+      expect(stats['4'].exact).toBe(true)
+      // digit 8: green in guess2 (d) → placed=1
+      expect(stats['8'].placed).toBe(1)
+      expect(stats['8'].confirmed).toBe(1)
     })
 
-    test('prioritizes correct over wrong-position', () => {
+    test('accumulates confirmed across guesses and caps with gray', () => {
       const guess1: Guess = {
-        matrix: { a: 1, b: 2, c: 3, d: 4 },
-        vector: { e: 5, f: 6 },
-        result: { g: 7, h: 8 },
+        matrix: { a: 2, b: 2, c: 1, d: 1 },
+        vector: { e: 1, f: 1 },
+        result: { g: 1, h: 1 },
         feedback: ['wrong-position', 'wrong-position', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle'],
         timestamp: new Date()
       }
 
+      // Put 3 twos in: 1 green, 1 yellow, 1 gray → exact count = 2
       const guess2: Guess = {
-        matrix: { a: 2, b: 1, c: 7, d: 8 },
-        vector: { e: 9, f: 5 },
-        result: { g: 3, h: 4 },
-        feedback: ['correct', 'correct', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle'],
+        matrix: { a: 2, b: 2, c: 2, d: 1 },
+        vector: { e: 1, f: 1 },
+        result: { g: 1, h: 1 },
+        feedback: ['correct', 'wrong-position', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle', 'not-in-puzzle'],
         timestamp: new Date()
       }
 
-      const digitStatus = calculateDigitTracker([guess1, guess2])
+      const stats = calculateDigitStats([guess1, guess2])
 
-      expect(digitStatus['1']).toBe('correct') // Upgraded from wrong-position to correct
-      expect(digitStatus['2']).toBe('correct') // Upgraded from wrong-position to correct
+      expect(stats['2'].placed).toBe(1)
+      expect(stats['2'].confirmed).toBe(2)
+      expect(stats['2'].exact).toBe(true)
     })
   })
 

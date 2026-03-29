@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
-import { generateFeedback, calculateDigitTracker, isWinningGuess } from '@/lib/feedback'
+import { generateFeedback, calculateDigitStats, isWinningGuess } from '@/lib/feedback'
 import { getDailyPuzzle } from '@/lib/dailyPuzzle'
-import type { Guess, Puzzle, FeedbackColor } from '@/types/game'
+import type { Guess, Puzzle, DigitStat } from '@/types/game'
 import type { Matrix2x2, Vector2x1, Result2x1 } from '@/types/game'
 
 export type GameStatus = 'playing' | 'won' | 'lost'
@@ -11,21 +11,23 @@ export interface GameState {
   guesses: Guess[]
   currentGuess: number
   status: GameStatus
-  digitTracker: Record<string, FeedbackColor>
+  digitStats: Record<string, DigitStat>
+  retried: boolean
 }
 
-function defaultState(): GameState {
+function defaultState(puzzle?: Puzzle): GameState {
   return {
-    puzzle: getDailyPuzzle(),
+    puzzle: puzzle ?? getDailyPuzzle(),
     guesses: [],
     currentGuess: 0,
     status: 'playing',
-    digitTracker: {},
+    digitStats: {},
+    retried: false,
   }
 }
 
 export function useGameState() {
-  const [gameState, setGameState] = useState<GameState>(defaultState)
+  const [gameState, setGameState] = useState<GameState>(() => defaultState())
   const [hydrated, setHydrated] = useState(false)
 
   // Rehydrate from localStorage on mount
@@ -70,37 +72,35 @@ export function useGameState() {
 
     setGameState(prev => {
       const newGuesses = [...prev.guesses, guess]
-      const newDigitTracker = calculateDigitTracker(newGuesses)
+      const newDigitStats = calculateDigitStats(newGuesses)
 
       const isWin = isWinningGuess(guess, prev.puzzle)
       const isGameOver = newGuesses.length >= 6
 
       let newStatus: GameStatus = 'playing'
-      if (isWin) {
-        newStatus = 'won'
-      } else if (isGameOver) {
-        newStatus = 'lost'
-      }
+      if (isWin) newStatus = 'won'
+      else if (isGameOver) newStatus = 'lost'
 
       return {
         ...prev,
         guesses: newGuesses,
         currentGuess: isWin || isGameOver ? prev.currentGuess : prev.currentGuess + 1,
         status: newStatus,
-        digitTracker: newDigitTracker
+        digitStats: newDigitStats,
       }
     })
   }, [gameState.status, gameState.puzzle])
 
-  const resetGame = useCallback(() => {
-    const puzzle = getDailyPuzzle()
-    const fresh = defaultState()
-    setGameState({ ...fresh, puzzle })
+  const retryGame = useCallback(() => {
+    setGameState(prev => ({
+      ...defaultState(prev.puzzle),
+      retried: true,
+    }))
   }, [])
 
   return {
     gameState,
     submitGuess,
-    resetGame
+    retryGame,
   }
 }

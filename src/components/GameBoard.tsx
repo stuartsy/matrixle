@@ -7,13 +7,20 @@ import WinModal from './WinModal'
 import { useGameState } from '@/hooks/useGameState'
 
 export default function GameBoard() {
-  const { gameState, submitGuess } = useGameState()
+  const { gameState, submitGuess, retryGame } = useGameState()
   const [showWinModal, setShowWinModal] = useState(false)
   const [modalClosedManually, setModalClosedManually] = useState(false)
+  const [gameKey, setGameKey] = useState(0)
 
-  // Show win modal when game is won (but not if it was manually closed)
   if (gameState.status === 'won' && !showWinModal && !modalClosedManually) {
     setShowWinModal(true)
+  }
+
+  const handleRetry = () => {
+    retryGame()
+    setShowWinModal(false)
+    setModalClosedManually(false)
+    setGameKey(prev => prev + 1)
   }
 
   const handleCloseModal = () => {
@@ -30,11 +37,10 @@ export default function GameBoard() {
 
   return (
     <div className="w-full max-w-2xl mx-auto pb-48">
-      {/* Game Board */}
       <div className="space-y-2 mb-6">
         {guessRows.map((row) => (
           <GuessRow
-            key={row.id}
+            key={`${gameKey}-${row.id}`}
             rowIndex={row.id}
             isActive={row.isActive}
             isSubmitted={row.isSubmitted}
@@ -44,26 +50,24 @@ export default function GameBoard() {
         ))}
       </div>
 
-      {/* Digit Tracker */}
-      <DigitTracker digitStatus={gameState.digitTracker} />
+      <DigitTracker digitStats={gameState.digitStats} />
 
-      {/* Game Status */}
       {gameState.status !== 'playing' && (
         <div className="text-center mt-6 p-4 rounded-lg bg-gray-100">
           <div className="text-lg font-semibold mb-2">
-            {gameState.status === 'won' ? '🎉 Congratulations!' : '😔 Game Over'}
+            {gameState.status === 'won'
+              ? gameState.retried ? '🎉 Solved on retry!' : '🎉 Congratulations!'
+              : '😔 Game Over'}
           </div>
           <div className="text-sm text-gray-600 mb-3">
             {gameState.status === 'won'
               ? `You solved it in ${gameState.guesses.length} guess${gameState.guesses.length !== 1 ? 'es' : ''}!`
-              : 'Better luck next time!'
-            }
+              : 'Better luck next time!'}
           </div>
           {gameState.status === 'lost' && (
             <div className="mb-4">
               <div className="text-gray-600 text-sm mb-2">The answer was:</div>
               <div className="flex items-center justify-center gap-2 text-xs font-mono">
-                {/* Matrix */}
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-1">[</span>
                   <div className="flex flex-col gap-0.5">
@@ -78,10 +82,7 @@ export default function GameBoard() {
                   </div>
                   <span className="text-gray-400 ml-1">]</span>
                 </div>
-
                 <span className="text-gray-600 font-bold">×</span>
-
-                {/* Vector */}
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-1">[</span>
                   <div className="flex flex-col gap-0.5">
@@ -90,10 +91,7 @@ export default function GameBoard() {
                   </div>
                   <span className="text-gray-400 ml-1">]</span>
                 </div>
-
                 <span className="text-gray-600 font-bold">=</span>
-
-                {/* Result */}
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-1">[</span>
                   <div className="flex flex-col gap-0.5">
@@ -105,15 +103,28 @@ export default function GameBoard() {
               </div>
             </div>
           )}
-          <p className="text-sm text-gray-500">Come back tomorrow for a new puzzle!</p>
+          {gameState.status === 'lost' && !gameState.retried && (
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mr-2"
+            >
+              Try Again
+            </button>
+          )}
+          {gameState.status === 'lost' && gameState.retried && (
+            <p className="text-sm text-gray-500">Come back tomorrow for a new puzzle!</p>
+          )}
+          {gameState.status === 'won' && (
+            <p className="text-sm text-gray-500">Come back tomorrow for a new puzzle!</p>
+          )}
         </div>
       )}
 
-      {/* Win Modal */}
       <WinModal
         isOpen={showWinModal}
         onClose={handleCloseModal}
         guessCount={gameState.guesses.length}
+        retried={gameState.retried}
       />
     </div>
   )

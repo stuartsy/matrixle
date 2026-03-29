@@ -22,6 +22,12 @@ export interface ValidationResult {
 
 export type FeedbackColor = 'correct' | 'wrong-position' | 'not-in-puzzle'
 
+export interface DigitStat {
+  placed: number    // # of this digit confirmed in correct positions (max greens in any guess)
+  confirmed: number // # of this digit in the puzzle (lower bound, or exact if exact=true)
+  exact: boolean    // true when a gray was seen — confirmed is the exact count
+}
+
 export interface Guess {
   matrix: Matrix2x2
   vector: Vector2x1
