@@ -5,11 +5,10 @@ import { useEffect, useState } from 'react'
 interface WinModalProps {
   isOpen: boolean
   onClose: () => void
-  onPlayAgain: () => void
   guessCount: number
 }
 
-export default function WinModal({ isOpen, onClose, onPlayAgain, guessCount }: WinModalProps) {
+export default function WinModal({ isOpen, onClose, guessCount }: WinModalProps) {
   const [showConfetti, setShowConfetti] = useState(false)
 
   useEffect(() => {
@@ -63,24 +62,19 @@ export default function WinModal({ isOpen, onClose, onPlayAgain, guessCount }: W
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             Congratulations!
           </h2>
-          <p className="text-gray-600 mb-6">
-            You solved the puzzle in {guessCount} guess{guessCount !== 1 ? 'es' : ''}!
+          <p className="text-gray-600 mb-2">
+            You solved it in {guessCount} guess{guessCount !== 1 ? 'es' : ''}!
           </p>
-          
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={onPlayAgain}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Play Again
-            </button>
-            <button
-              onClick={onClose}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Close
-            </button>
-          </div>
+          <p className="text-sm text-gray-500 mb-6">
+            Come back tomorrow for a new puzzle!
+          </p>
+
+          <button
+            onClick={onClose}
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

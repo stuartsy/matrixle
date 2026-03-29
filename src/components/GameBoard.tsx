@@ -7,26 +7,18 @@ import WinModal from './WinModal'
 import { useGameState } from '@/hooks/useGameState'
 
 export default function GameBoard() {
-  const { gameState, submitGuess, resetGame } = useGameState()
+  const { gameState, submitGuess } = useGameState()
   const [showWinModal, setShowWinModal] = useState(false)
   const [modalClosedManually, setModalClosedManually] = useState(false)
-  const [gameKey, setGameKey] = useState(0)
 
   // Show win modal when game is won (but not if it was manually closed)
   if (gameState.status === 'won' && !showWinModal && !modalClosedManually) {
     setShowWinModal(true)
   }
 
-  const handlePlayAgain = () => {
-    resetGame()
-    setShowWinModal(false)
-    setModalClosedManually(false) // Reset for new game
-    setGameKey(prev => prev + 1) // Force re-render of GuessRow components
-  }
-
   const handleCloseModal = () => {
     setShowWinModal(false)
-    setModalClosedManually(true) // Track that user manually closed it
+    setModalClosedManually(true)
   }
 
   const guessRows = Array.from({ length: 6 }, (_, index) => ({
@@ -42,7 +34,7 @@ export default function GameBoard() {
       <div className="space-y-2 mb-6">
         {guessRows.map((row) => (
           <GuessRow
-            key={`${gameKey}-${row.id}`}
+            key={row.id}
             rowIndex={row.id}
             isActive={row.isActive}
             isSubmitted={row.isSubmitted}
@@ -51,10 +43,10 @@ export default function GameBoard() {
           />
         ))}
       </div>
-      
-      {/* Digit Tracker - Now sticky at bottom */}
+
+      {/* Digit Tracker */}
       <DigitTracker digitStatus={gameState.digitTracker} />
-      
+
       {/* Game Status */}
       {gameState.status !== 'playing' && (
         <div className="text-center mt-6 p-4 rounded-lg bg-gray-100">
@@ -62,7 +54,7 @@ export default function GameBoard() {
             {gameState.status === 'won' ? '🎉 Congratulations!' : '😔 Game Over'}
           </div>
           <div className="text-sm text-gray-600 mb-3">
-            {gameState.status === 'won' 
+            {gameState.status === 'won'
               ? `You solved it in ${gameState.guesses.length} guess${gameState.guesses.length !== 1 ? 'es' : ''}!`
               : 'Better luck next time!'
             }
@@ -86,10 +78,9 @@ export default function GameBoard() {
                   </div>
                   <span className="text-gray-400 ml-1">]</span>
                 </div>
-                
-                {/* Multiplication symbol */}
+
                 <span className="text-gray-600 font-bold">×</span>
-                
+
                 {/* Vector */}
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-1">[</span>
@@ -99,10 +90,9 @@ export default function GameBoard() {
                   </div>
                   <span className="text-gray-400 ml-1">]</span>
                 </div>
-                
-                {/* Equals symbol */}
+
                 <span className="text-gray-600 font-bold">=</span>
-                
+
                 {/* Result */}
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-1">[</span>
@@ -115,21 +105,14 @@ export default function GameBoard() {
               </div>
             </div>
           )}
-          <button
-            onClick={handlePlayAgain}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Play Again
-          </button>
+          <p className="text-sm text-gray-500">Come back tomorrow for a new puzzle!</p>
         </div>
       )}
-      
 
       {/* Win Modal */}
       <WinModal
         isOpen={showWinModal}
         onClose={handleCloseModal}
-        onPlayAgain={handlePlayAgain}
         guessCount={gameState.guesses.length}
       />
     </div>
