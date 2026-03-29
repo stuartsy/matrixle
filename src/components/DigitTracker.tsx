@@ -11,7 +11,7 @@ function DigitCell({ digit, stat }: { digit: string; stat: DigitStat | undefined
   const done = confirmed > 0 && placed === confirmed
 
   let bg: string
-  if (eliminated) bg = 'bg-gray-400 text-white'
+  if (eliminated) bg = 'bg-white border-gray-300 text-red-400'
   else if (unseen) bg = 'bg-gray-200 text-gray-600'
   else if (done) bg = 'bg-green-500 text-white'
   else if (placed > 0) bg = 'bg-green-400 text-white'
@@ -21,11 +21,11 @@ function DigitCell({ digit, stat }: { digit: string; stat: DigitStat | undefined
 
   return (
     <div
-      className={`flex flex-col items-center justify-center w-9 h-11 rounded border-2 border-transparent transition-colors duration-300 ${bg} ${eliminated ? 'opacity-50' : ''}`}
+      className={`flex flex-col items-center justify-center w-9 h-11 rounded border-2 transition-colors duration-300 ${bg}`}
       role="img"
       aria-label={`Digit ${digit}: placed ${placed}, confirmed ${confirmedLabel ?? 'unknown'}`}
     >
-      <span className={`text-sm font-bold leading-none ${eliminated ? 'line-through' : ''}`}>
+      <span className={`text-sm font-bold leading-none ${eliminated ? 'line-through decoration-2 decoration-red-500' : ''}`}>
         {digit}
       </span>
       {!unseen && !eliminated && (
