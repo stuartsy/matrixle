@@ -41,7 +41,7 @@ export function useGameState() {
           ...g,
           timestamp: new Date(g.timestamp),
         }))
-        setGameState({ ...parsed, puzzle })
+        setGameState({ ...parsed, puzzle, digitStats: parsed.digitStats ?? {} })
       }
     } catch {
       // ignore corrupt storage
