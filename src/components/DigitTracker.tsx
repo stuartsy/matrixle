@@ -17,7 +17,13 @@ function DigitCell({ digit, stat }: { digit: string; stat: DigitStat | undefined
   else if (placed > 0) bg = 'bg-green-400 text-white'
   else bg = 'bg-yellow-400 text-gray-900'
 
-  const confirmedLabel = exact ? `${confirmed}` : confirmed > 0 ? `≥${confirmed}` : null
+  const confirmedLabel = done
+    ? `${confirmed}✓`
+    : exact
+      ? `${confirmed}`
+      : confirmed > 0
+        ? `≥${confirmed}`
+        : null
 
   return (
     <div
@@ -28,9 +34,9 @@ function DigitCell({ digit, stat }: { digit: string; stat: DigitStat | undefined
       <span className={`text-sm font-bold leading-none ${eliminated ? 'line-through decoration-2 decoration-red-500' : ''}`}>
         {digit}
       </span>
-      {!unseen && !eliminated && (
+      {!unseen && !eliminated && confirmedLabel && (
         <span className="text-xs leading-none mt-0.5 opacity-90">
-          {placed}/{confirmedLabel}{done ? '✓' : ''}
+          {confirmedLabel}
         </span>
       )}
     </div>
@@ -45,7 +51,7 @@ export default function DigitTracker({ digitStats }: DigitTrackerProps) {
       <div className="w-full max-w-2xl mx-auto py-3 px-4">
         {/* Legend */}
         <div className="text-center text-gray-500 text-xs mb-2">
-          placed / confirmed &nbsp;·&nbsp; 🟩 all placed &nbsp;·&nbsp; 🟨 found, not placed &nbsp;·&nbsp; ~~strikethrough~~ not in puzzle
+          🟩 all placed &nbsp;·&nbsp; 🟨 found, not fully placed &nbsp;·&nbsp; <span className="text-red-400 line-through">0</span> not in puzzle
         </div>
 
         {/* Digit cells */}
