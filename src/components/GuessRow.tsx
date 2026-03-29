@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useCallback, useMemo, KeyboardEvent } from 'react'
+import { useState, useCallback, useMemo, KeyboardEvent, useEffect } from 'react'
 import InputCell from './InputCell'
 import { validateCompleteGuess } from '@/lib/validation'
-import type { Matrix2x2, Vector2x1, Result2x1, FeedbackColor } from '@/types/game'
+import type { Matrix2x2, Vector2x1, Result2x1, FeedbackColor, Guess } from '@/types/game'
 
 interface GuessRowProps {
   rowIndex: number
   isActive: boolean
   isSubmitted: boolean
   feedback?: FeedbackColor[]
+  guess?: Guess
   onSubmit?: (guess: {
     matrix: Matrix2x2
     vector: Vector2x1
@@ -19,19 +20,41 @@ interface GuessRowProps {
 
 type CellPosition = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h'
 
+function guessToValues(guess?: Guess): Record<CellPosition, string> {
+  if (!guess) {
+    return { a: '', b: '', c: '', d: '', e: '', f: '', g: '', h: '' }
+  }
+
+  return {
+    a: String(guess.matrix.a),
+    b: String(guess.matrix.b),
+    c: String(guess.matrix.c),
+    d: String(guess.matrix.d),
+    e: String(guess.vector.e),
+    f: String(guess.vector.f),
+    g: String(guess.result.g),
+    h: String(guess.result.h),
+  }
+}
+
 export default function GuessRow({ 
   rowIndex, 
   isActive, 
   isSubmitted, 
   feedback,
+  guess,
   onSubmit 
 }: GuessRowProps) {
-  const [values, setValues] = useState<Record<CellPosition, string>>({
-    a: '', b: '', c: '', d: '', e: '', f: '', g: '', h: ''
-  })
+  const [values, setValues] = useState<Record<CellPosition, string>>(() => guessToValues(guess))
   
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [currentFocus, setCurrentFocus] = useState<CellPosition>('a')
+
+  useEffect(() => {
+    if (guess) {
+      setValues(guessToValues(guess))
+    }
+  }, [guess])
 
   // Navigation order for all 8 positions - user inputs everything
   const navigationOrder = useMemo<CellPosition[]>(() => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [])

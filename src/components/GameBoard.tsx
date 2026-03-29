@@ -7,6 +7,7 @@ import WinModal from './WinModal'
 import { useGameState } from '@/hooks/useGameState'
 import { formatShareText } from '@/lib/share'
 import { getPuzzleNumber } from '@/lib/dailyPuzzle'
+import type { Guess } from '@/types/game'
 
 export default function GameBoard() {
   const { gameState, submitGuess, retryGame } = useGameState()
@@ -49,7 +50,8 @@ export default function GameBoard() {
     id: index,
     isActive: index === gameState.currentGuess && gameState.status === 'playing',
     isSubmitted: index < gameState.guesses.length,
-    feedback: gameState.guesses[index]?.feedback
+    feedback: gameState.guesses[index]?.feedback,
+    guess: gameState.guesses[index] as Guess | undefined,
   }))
 
   return (
@@ -62,6 +64,7 @@ export default function GameBoard() {
             isActive={row.isActive}
             isSubmitted={row.isSubmitted}
             feedback={row.feedback}
+            guess={row.guess}
             onSubmit={submitGuess}
           />
         ))}

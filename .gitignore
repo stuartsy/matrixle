@@ -2,6 +2,13 @@
 
 # dependencies
 /node_modules
+
+# local agent/tooling state
+.claude/
+.playwright-mcp/
+
+# local debug screenshots
+*.png
 /.pnp
 .pnp.js
 
